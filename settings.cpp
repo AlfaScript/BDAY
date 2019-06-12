@@ -38,7 +38,7 @@ void settings::on_okButton_clicked(void) noexcept
 
 void settings::on_aboutButton_clicked(void) noexcept
 {
-    QMessageBox::about(this, "ABOUT US", "This program was created by BOXE Incorporated\nAll rights reserved © 2018 - " + QString::number(QDate::currentDate().year()));
+    QMessageBox::about(this, "ABOUT US", "This program was created by Dmitry\nAll rights reserved © 2018 - " + QString::number(QDate::currentDate().year()));
 }
 
 void settings::on_checkBox_stateChanged(int choose) noexcept
