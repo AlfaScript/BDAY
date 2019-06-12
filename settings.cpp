@@ -4,7 +4,16 @@
 settings::settings(QWidget * parent) : QDialog(parent), ui(new Ui::settings)
 {
     ui->setupUi(this);
-    ui->checkBox->setChecked(isCheck());
+    ui->checkBox->setChecked([]()
+        {
+        #ifdef Q_OS_WIN32
+            const QFileInfo fileInfo(QCoreApplication::applicationFilePath());
+            const QString pathOfLink = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator() + "Startup" + QDir::separator() + fileInfo.completeBaseName() + ".lnk";
+            return QFile::exists(pathOfLink);
+        #else
+            return false;
+        #endif
+        });
 }
 
 settings::~settings()
@@ -30,17 +39,6 @@ void settings::on_okButton_clicked(void) noexcept
 void settings::on_aboutButton_clicked(void) noexcept
 {
     QMessageBox::about(this, "ABOUT US", "This program was created by BOXE Incorporated\nAll rights reserved © 2018 - " + QString::number(QDate::currentDate().year()));
-}
-
-bool settings::isCheck(void) const noexcept
-{
-#ifdef Q_OS_WIN32
-    const QFileInfo fileInfo(QCoreApplication::applicationFilePath());
-    const QString pathOfLink = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator() + "Startup" + QDir::separator() + fileInfo.completeBaseName() + ".lnk";
-    return QFile::exists(pathOfLink);
-#else
-    return false;
-#endif
 }
 
 void settings::on_checkBox_stateChanged(int choose) noexcept

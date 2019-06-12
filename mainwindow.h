@@ -6,6 +6,7 @@
 #include <QWidget>
 #include <QMessageBox>
 #include <QPointer>
+#include <future>
 
 /*--- FORMS (Windows) ---*/
 #include "dialog.h"

@@ -3,6 +3,16 @@
 
 MainWindow::MainWindow(QWidget * parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
+    std::future<bool> enableAutorun = std::async([]()
+            {
+            #ifdef Q_OS_WIN32
+                const QFileInfo fileInfo(QCoreApplication::applicationFilePath());
+                const QString pathOfLink = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator() + "Startup" + QDir::separator() + fileInfo.completeBaseName() + ".lnk";
+                return QFile::exists(pathOfLink);
+            #else
+                return true;
+            #endif
+            });
     // this->setWindowFlags(Qt::CustomizeWindowHint);
     // this->setWindowFlags(Qt::FramelessWindowHint);
     ui->setupUi(this);
@@ -12,6 +22,8 @@ MainWindow::MainWindow(QWidget * parent) : QMainWindow(parent), ui(new Ui::MainW
     ui->buttonRemove->setMouseTracking(true);
     ui->buttonSettings->setMouseTracking(true);
     ui->buttonShow->setMouseTracking(true);
+    if(!enableAutorun.get())
+	QMessageBox::warning(this, "B-DAY | AUTORUN", "Autostart program is turned off. Turn it on in the settings, so as not to forget about birthdays", "OKAY");
 }
 
 MainWindow::~MainWindow()

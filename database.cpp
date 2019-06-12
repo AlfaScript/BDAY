@@ -6,9 +6,9 @@ DataBase::DataBase(void)
             !QDir(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME + "\\" + SETT::APPLICATION_NAME).exists())
         QDir().mkpath(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME + "\\" + SETT::APPLICATION_NAME);
 
-    QFile fileDataBase(SETT::pathToDB);
-    if(fileDataBase.exists())
+    if(QFile(SETT::pathToDB).exists())
     {
+        QFile fileDataBase(SETT::pathToDB);
         if(!fileDataBase.open(QIODevice::ReadOnly) && !fileDataBase.isOpen())
         {
             QMessageBox messageBox;
@@ -60,8 +60,8 @@ DataBase::DataBase(void)
                 }
             }
         }
+        fileDataBase.close();
     }
-    fileDataBase.close();
 }
 
 DataBase * DataBase::getInstance(void) noexcept

@@ -20,7 +20,6 @@ class settings : public QDialog
 public:
     explicit settings(QWidget * parent = nullptr);
     ~settings();
-    bool isCheck(void) const noexcept;
 
 private slots:
     void on_okButton_clicked(void) noexcept;
