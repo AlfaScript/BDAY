@@ -5,7 +5,7 @@ MainWindow::MainWindow(QWidget * parent) : QMainWindow(parent), ui(new Ui::MainW
 {
     std::future<bool> enableAutorun = std::async([]()
             {
-            #ifdef Q_OS_WIN32
+            #ifdef Q_OS_WIN
                 const QFileInfo fileInfo(QCoreApplication::applicationFilePath());
                 const QString pathOfLink = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator() + "Startup" + QDir::separator() + fileInfo.completeBaseName() + ".lnk";
                 return QFile::exists(pathOfLink);
@@ -22,8 +22,16 @@ MainWindow::MainWindow(QWidget * parent) : QMainWindow(parent), ui(new Ui::MainW
     ui->buttonRemove->setMouseTracking(true);
     ui->buttonSettings->setMouseTracking(true);
     ui->buttonShow->setMouseTracking(true);
+    positionOfAddButton = ui->buttonAdd->mapToGlobal(QPoint(0, 0));
+    sizeOfAddButton = ui->buttonAdd->size();
+    positionOfRemoveButton = ui->buttonRemove->mapToGlobal(QPoint(0, 0));
+    sizeOfRemoveButton = ui->buttonRemove->size();
+    positionOfShowButton = ui->buttonShow->mapToGlobal(QPoint(0, 0));
+    sizeOfShowButton = ui->buttonShow->size();
+    positionOfSettingsButton = ui->buttonSettings->mapToGlobal(QPoint(0, 0));
+    sizeOfSettingsButton = ui->buttonSettings->size();
     if(!enableAutorun.get())
-	QMessageBox::warning(this, "B-DAY | AUTORUN", "Autostart program is turned off. Turn it on in the settings, so as not to forget about birthdays", "OKAY");
+        QMessageBox::warning(this, "B-DAY | AUTORUN", "Autostart program is turned off. Turn it on in the settings, so as not to forget about birthdays", "OKAY");
 }
 
 MainWindow::~MainWindow()
@@ -64,23 +72,22 @@ void MainWindow::on_buttonSettings_clicked(void) noexcept
     newForm->exec();
 }
 
-void MainWindow::mouseMoveEvent(const QMouseEvent * event) noexcept
+void MainWindow::mouseMoveEvent(QMouseEvent * event) noexcept
 {
-    const uint16_t xPosition = static_cast<uint16_t>(event->pos().x());
-    const uint16_t yPosition = static_cast<uint16_t>(event->pos().y());
-    if(xPosition >= 20 && xPosition < 180)
-    {
-        if(yPosition >= 60 && yPosition < 120)
-            ui->helpText->setText("This button is required to add\n a person to your list");
-        else if(yPosition >= 120 && yPosition < 180)
-            ui->helpText->setText("This button is required to remove\n a person from your list");
-        else if(yPosition >= 180 && yPosition < 240)
-            ui->helpText->setText("This button is required to show\n your list");
-        else if(yPosition >= 240 && yPosition < 300)
-            ui->helpText->setText("This button is required to configure\n the program and to import the data base");
-        else
-            ui->helpText->clear();
-    }
+    const QPoint mousePosition(event->pos());
+
+    if(mousePosition.x() >= positionOfAddButton.x() && mousePosition.x() < (positionOfAddButton.x() + sizeOfAddButton.width())
+            && mousePosition.y() >= positionOfAddButton.y() && mousePosition.y() < (positionOfAddButton.y() + sizeOfAddButton.height()))
+        ui->helpText->setText("This button is required to add\n a person to your list");
+    else if(mousePosition.x() >= positionOfRemoveButton.x() && mousePosition.x() < (positionOfRemoveButton.x() + sizeOfRemoveButton.width())
+            && mousePosition.y() >= positionOfRemoveButton.y() && mousePosition.y() < (positionOfRemoveButton.y() + sizeOfRemoveButton.height()))
+        ui->helpText->setText("This button is required to remove\n a person from your list");
+    else if(mousePosition.x() >= positionOfShowButton.x() && mousePosition.x() < (positionOfShowButton.x() + sizeOfShowButton.width())
+            && mousePosition.y() >= positionOfShowButton.y() && mousePosition.y() < (positionOfShowButton.y() + sizeOfShowButton.height()))
+        ui->helpText->setText("This button is required to show\n your list");
+    else if(mousePosition.x() >= positionOfSettingsButton.x() && mousePosition.x() < (positionOfSettingsButton.x() + sizeOfSettingsButton.width())
+            && mousePosition.y() >= positionOfSettingsButton.y() && mousePosition.y() < (positionOfSettingsButton.y() + sizeOfSettingsButton.height()))
+        ui->helpText->setText("This button is required to configure\n the program and to import the data base");
     else
         ui->helpText->clear();
 }

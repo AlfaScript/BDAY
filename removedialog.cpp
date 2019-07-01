@@ -34,4 +34,5 @@ void Removedialog::on_removeButton_clicked(void) noexcept
         else
             QMessageBox::warning(this, "B-DAY | NOT FOUND", "The person was not found", "OKAY");
     }
+    this->close();
 }

@@ -2,65 +2,19 @@
 
 DataBase::DataBase(void)
 {
-    if(!QDir(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME).exists() ||
-            !QDir(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME + "\\" + SETT::APPLICATION_NAME).exists())
-        QDir().mkpath(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME + "\\" + SETT::APPLICATION_NAME);
-
+    checkAndCreatingPathToDB();
     if(QFile(SETT::pathToDB).exists())
     {
-        QFile fileDataBase(SETT::pathToDB);
-        if(!fileDataBase.open(QIODevice::ReadOnly) && !fileDataBase.isOpen())
-        {
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("B-DAY | ERROR");
-            messageBox.setIcon(QMessageBox::Critical);
-            messageBox.setText("Error #2: the database file can not be read\n Our advice: try manually open the database file");
-            messageBox.setButtonText(0, "OKAY");
-            messageBox.exec();
-        }
+        if(QFile fileDataBase(SETT::pathToDB); !fileDataBase.open(QIODevice::ReadOnly) && !fileDataBase.isOpen())
+            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #2: the database file can not be read\n"
+                                                                   "Our advice: try manually open the database file");
         else
         {
-            const uint8_t currentDay = static_cast<uint8_t>(QDate::currentDate().day());
-            const uint8_t currentMonth = static_cast<uint8_t>(QDate::currentDate().month());
-
-            while(!fileDataBase.atEnd())
-            {
-                const QString tempReadLine = fileDataBase.readLine();
-                cacheData.push_back(tempReadLine);
-                const QStringList tempStrList = tempReadLine.split(" ");
-                const uint8_t day = static_cast<uint8_t>(tempStrList.at(2).toUShort());
-                const uint8_t month = static_cast<uint8_t>(tempStrList.at(3).toUShort());
-                const QString firstName = tempStrList.at(0);
-                const QString lastName = tempStrList.at(1);
-                const uint16_t year = static_cast<uint16_t>(tempStrList.at(4).toUShort());
-                const uint16_t yearsOld = static_cast<uint16_t>(QDate::currentDate().year() - year);
-                if((day == currentDay) && (month == currentMonth))
-                {
-                    QMessageBox messageBox;
-                    messageBox.setWindowTitle("TODAY BIRTH DAY OF PERSON");
-                    messageBox.setIcon(QMessageBox::Information);
-                    messageBox.setText("The birth day of " + firstName + " " + lastName + " (" + QString::number(yearsOld) + " years old).");
-                    messageBox.setButtonText(0, "OKAY");
-                    messageBox.exec();
-                }
-                else
-                {
-                    const QDate date(QDate::currentDate().year(), currentMonth, currentDay);
-                    if((((day - currentDay) == 1) && (month == currentMonth))
-                            || ((date.daysInMonth() == currentDay) && (day == 1) && ((month - currentMonth) == 1))
-                            || ((day == 1 && month == 1) && (currentDay == 31 && currentMonth == 12)) )
-                    {
-                        QMessageBox messageBox;
-                        messageBox.setWindowTitle("TOMORROW BIRTH DAY OF PERSON");
-                        messageBox.setIcon(QMessageBox::Information);
-                        messageBox.setText("Tomorrow is the birthday of " + firstName + " " + lastName + " (" + QString::number(yearsOld) + " years old).");
-                        messageBox.setButtonText(0, "OKAY");
-                        messageBox.exec();
-                    }
-                }
-            }
+            while (!fileDataBase.atEnd())
+                cacheData.push_back(fileDataBase.readLine());
+            showTodaysBD();
+            showTommorowBD();
         }
-        fileDataBase.close();
     }
 }
 
@@ -80,59 +34,33 @@ void DataBase::DestroyInstance(void) noexcept
 void DataBase::addPerson(QString && firstName, QString && lastName, QString && data) noexcept
 {
     const QString stringToWrite = firstName + " " + lastName + " " + data + "\r\n";
-    QFile fileDataBase(SETT::pathToDB);
-    if(!fileDataBase.exists())
+    if(QFile fileDataBase(SETT::pathToDB); !fileDataBase.exists())
     {
         if(!fileDataBase.open(QIODevice::WriteOnly) && !fileDataBase.isOpen())
-        {
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("B-DAY | ERROR");
-            messageBox.setIcon(QMessageBox::Critical);
-            messageBox.setText("Error #1: the database file can not be created");
-            messageBox.setButtonText(0, "OKAY");
-            messageBox.exec();
-        }
+            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be created");
         else
         {
             fileDataBase.write(stringToWrite.toStdString().c_str());
             cacheData.push_back(stringToWrite);
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("B-DAY | ADD");
-            messageBox.setIcon(QMessageBox::Information);
-            messageBox.setText("The person was added successfully");
-            messageBox.setButtonText(0, "OKAY");
-            messageBox.exec();
+            showMessageBox(QMessageBox::Information, "B-DAY | ADD", "The person was added successfully");
         }
     }
     else
     {
         if(!fileDataBase.open(QIODevice::Append) && !fileDataBase.isOpen())
-        {
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("B-DAY | ERROR");
-            messageBox.setIcon(QMessageBox::Critical);
-            messageBox.setText("Error #1: the database file can not be opened");
-            messageBox.setButtonText(0, "OKAY");
-            messageBox.exec();
-        }
+            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be opened");
         else
         {
             fileDataBase.write(stringToWrite.toStdString().c_str());
             cacheData.push_back(stringToWrite);
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("B-DAY | ADD");
-            messageBox.setIcon(QMessageBox::Information);
-            messageBox.setText("The person was added successfully");
-            messageBox.setButtonText(0, "OKAY");
-            messageBox.exec();
+            showMessageBox(QMessageBox::Information, "B-DAY | ADD", "The person was added successfully");
         }
     }
-    fileDataBase.close();
 }
 
 bool DataBase::removePerson(QString && firstNameRemove, QString && lastNameRemove) noexcept
 {
-    uint8_t i = 0;
+    uint8_t removeIndex = 0;
     for(const auto & line : cacheData)
     {
         const QStringList lineOfDataBase = line.split(" ");
@@ -143,12 +71,12 @@ bool DataBase::removePerson(QString && firstNameRemove, QString && lastNameRemov
             if(firstNameRemove == firstNameDB)
                 break;
         }
-        ++i;
+        ++removeIndex;
     }
 
-    if(i != cacheData.size())
+    if(removeIndex != cacheData.size())
     {
-        cacheData.removeAt(i);
+        cacheData.removeAt(removeIndex);
         return true;
     }
     return false;
@@ -156,25 +84,16 @@ bool DataBase::removePerson(QString && firstNameRemove, QString && lastNameRemov
 
 void DataBase::updateDataBaseFile(void) const noexcept
 {
-    QFile fileDataBase(SETT::pathToDB);
-    if(fileDataBase.exists())
+    if(QFile fileDataBase(SETT::pathToDB); fileDataBase.exists())
     {
         if(!fileDataBase.open(QIODevice::WriteOnly | QIODevice::Truncate) && !fileDataBase.isOpen())
-        {
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("B-DAY | ERROR");
-            messageBox.setIcon(QMessageBox::Critical);
-            messageBox.setText("Error #1: the database file can not be opened");
-            messageBox.setButtonText(0, "OKAY");
-            messageBox.exec();
-        }
+            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be opened");
         else
         {
             for(const auto & line : cacheData)
                 fileDataBase.write(line.toStdString().c_str());
         }
     }
-    fileDataBase.close();
 }
 
 void DataBase::getData(QList<QString> & list) const noexcept
@@ -185,28 +104,13 @@ void DataBase::getData(QList<QString> & list) const noexcept
 
 void DataBase::importDatabase(const QString & fileName) noexcept
 {
-    QFile importFile(fileName);
-    if(!importFile.open(QIODevice::ReadOnly) && !importFile.isOpen())
-    {
-        QMessageBox messageBox;
-        messageBox.setWindowTitle("B-DAY | ERROR");
-        messageBox.setIcon(QMessageBox::Critical);
-        messageBox.setText("Error #2: the file with import database can not be read\nOur advice: try to open the database file");
-        messageBox.setButtonText(0, "OKAY");
-        messageBox.exec();
-    }
+    if(QFile importFile(fileName); !importFile.open(QIODevice::ReadOnly) && !importFile.isOpen())
+        showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #2: the file with import database can not be read\n"
+                                                               "Our advice: try to open the database file");
     else
     {
-        QFile fileDataBase(SETT::pathToDB);
-        if(!fileDataBase.open(QIODevice::Append) && !fileDataBase.isOpen())
-        {
-            QMessageBox messageBox;
-            messageBox.setWindowTitle("B-DAY | ERROR");
-            messageBox.setIcon(QMessageBox::Critical);
-            messageBox.setText("Error #1: the database file can not be opened");
-            messageBox.setButtonText(0, "OKAY");
-            messageBox.exec();
-        }
+        if(QFile fileDataBase(SETT::pathToDB); !fileDataBase.open(QIODevice::Append) && !fileDataBase.isOpen())
+            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be opened");
         else
         {
             const auto iteratorOfEnd = cacheData.end();
@@ -218,42 +122,62 @@ void DataBase::importDatabase(const QString & fileName) noexcept
                     cacheData.push_back(tempStrImport);
                     fileDataBase.write(tempStrImport.toStdString().c_str());
                 }
-                /*bool check = false;
-                const QString tempStrImport = importFile.readLine();
-                const QStringList tempStrImportList = tempStrImport.split(" ");
-                const QString firstName = tempStrImportList.at(0);
-                const QString lastName = tempStrImportList.at(1);
-                const uint8_t day = static_cast<uint8_t>(tempStrImportList.at(2).toUShort());
-                const uint8_t month = static_cast<uint8_t>(tempStrImportList.at(3).toUShort());
-                const uint16_t year = static_cast<uint16_t>(tempStrImportList.at(4).toUShort());
-
-                fileDataBase.seek(0); // go to start at file
-                while(!fileDataBase.atEnd())
-                {
-                    QString tempStrDB = fileDataBase.readLine();
-                    QStringList tempStrDBList = tempStrDB.split(" ");
-                    QString fNameDB = tempStrDBList.at(0);
-                    QString lNameDB = tempStrDBList.at(1);
-                    if((fNameDB == firstName) && (lNameDB == lastName))
-                    {
-                        unsigned short int dayDB = tempStrDBList.at(2).toUShort();
-                        unsigned short int monthDB = tempStrDBList.at(3).toUShort();
-                        unsigned short int yearDB = tempStrDBList.at(4).toUShort();
-                        if((dayDB == day) && (monthDB == month) && (yearDB == year))
-                        {
-                            check = true;
-                            break;
-                        }
-                    }
-                }
-                if(check)
-                    continue;
-
-                QString strForWrite = firstName + " " + lastName + " " + QString::number(day) + " " + QString::number(month) + " " + QString::number(year) + "\r\n";
-                fileDataBase.write(strForWrite.toStdString().c_str());*/
             }
         }
-        fileDataBase.close();
     }
-    importFile.close();
+}
+
+void DataBase::checkAndCreatingPathToDB(void) noexcept
+{
+    if(!QDir(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME).exists() ||
+            !QDir(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME + "\\" + SETT::APPLICATION_NAME).exists())
+        QDir().mkpath(SETT::APPDATALOCATION + "\\" + SETT::COMPANY_NAME + "\\" + SETT::APPLICATION_NAME);
+}
+
+void DataBase::showMessageBox(QMessageBox::Icon icon, const QString & titleOfMessageBox, const QString & textOfMessageBox) const noexcept
+{
+    QMessageBox messageBox;
+    messageBox.setWindowTitle(titleOfMessageBox);
+    messageBox.setIcon(icon);
+    messageBox.setText(textOfMessageBox);
+    messageBox.setButtonText(0, "OKAY");
+    messageBox.exec();
+}
+
+void DataBase::showTodaysBD(void) const noexcept
+{
+    const QDate currentDate(QDate::currentDate().year(), QDate::currentDate().month(), QDate::currentDate().day());
+
+    for(auto it = cacheData.begin(); it != cacheData.end(); ++it)
+    {
+        const QStringList tempStrList = it->split(" ");
+        const QDate dateOfBD(tempStrList.at(4).toInt(), tempStrList.at(3).toInt(), tempStrList.at(2).toInt());
+        if((dateOfBD.day() == currentDate.day()) && (dateOfBD.month() == currentDate.month()))
+        {
+            const QString firstName = tempStrList.at(0);
+            const QString lastName = tempStrList.at(1);
+            const uint8_t yearsOld = static_cast<uint8_t>(currentDate.year() - dateOfBD.year());
+            showMessageBox(QMessageBox::Information, "TODAY BIRTH DAY OF PERSON", "The birth day of " + firstName + " " + lastName
+                           + " (" + QString::number(yearsOld) + " years old).");
+        }
+    }
+}
+
+void DataBase::showTommorowBD(void) const noexcept
+{
+    const QDate currentDate(QDate::currentDate().year(), QDate::currentDate().month(), QDate::currentDate().day());
+
+    for(auto it = cacheData.begin(); it != cacheData.end(); ++it)
+    {
+        const QStringList tempStrList = it->split(" ");
+        const QDate dateOfBD(tempStrList.at(4).toInt(), tempStrList.at(3).toInt(), tempStrList.at(2).toInt());
+        if(currentDate.addDays(1) == dateOfBD)
+        {
+            const QString firstName = tempStrList.at(0);
+            const QString lastName = tempStrList.at(1);
+            const uint8_t yearsOld = static_cast<uint8_t>(currentDate.year() - dateOfBD.year());
+            showMessageBox(QMessageBox::Information, "TOMORROW BIRTH DAY OF PERSON", "Tomorrow is the birthday of " + firstName + " " + lastName
+                           + " (" + QString::number(yearsOld) + " years old).");
+        }
+    }
 }

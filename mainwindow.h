@@ -36,7 +36,16 @@ private slots:
 
 private:
     Ui::MainWindow * ui;
-    void mouseMoveEvent(const QMouseEvent * event) noexcept;
+    void mouseMoveEvent(QMouseEvent * event) noexcept;
+
+    QPoint positionOfAddButton;
+    QSize sizeOfAddButton;
+    QPoint positionOfRemoveButton;
+    QSize sizeOfRemoveButton;
+    QPoint positionOfShowButton;
+    QSize sizeOfShowButton;
+    QPoint positionOfSettingsButton;
+    QSize sizeOfSettingsButton;
 };
 
 #endif // MAINWINDOW_H

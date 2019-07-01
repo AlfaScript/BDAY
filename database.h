@@ -26,6 +26,11 @@ public:
     void importDatabase(const QString &) noexcept;
 
 private:
+    void checkAndCreatingPathToDB(void) noexcept;
+    void showMessageBox(QMessageBox::Icon, const QString &, const QString &) const noexcept;
+    void showTodaysBD(void) const noexcept;
+    void showTommorowBD(void) const noexcept;
+
     static DataBase * p_instance;
     QList<QString> cacheData;
 };
