@@ -18,44 +18,42 @@ DataBase::DataBase(void)
     }
 }
 
-DataBase * DataBase::getInstance(void) noexcept
+std::shared_ptr<DataBase> DataBase::getInstance(void) noexcept
 {
     if (!p_instance)
-        p_instance = new DataBase();
+       p_instance = std::make_shared<DataBase>();
     return p_instance;
 }
 
 void DataBase::DestroyInstance(void) noexcept
 {
-    delete p_instance;
+    // delete p_instance;
     p_instance = nullptr;
 }
 
 void DataBase::addPerson(QString && firstName, QString && lastName, QString && data) noexcept
 {
     const QString stringToWrite = firstName + " " + lastName + " " + data + "\r\n";
-    if(QFile fileDataBase(SETT::pathToDB); !fileDataBase.exists())
+    QFile fileDataBase(SETT::pathToDB);
+    if(!fileDataBase.exists())
     {
         if(!fileDataBase.open(QIODevice::WriteOnly) && !fileDataBase.isOpen())
-            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be created");
-        else
         {
-            fileDataBase.write(stringToWrite.toStdString().c_str());
-            cacheData.push_back(stringToWrite);
-            showMessageBox(QMessageBox::Information, "B-DAY | ADD", "The person was added successfully");
+            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be created");
+            return;
         }
     }
     else
     {
         if(!fileDataBase.open(QIODevice::Append) && !fileDataBase.isOpen())
-            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be opened");
-        else
         {
-            fileDataBase.write(stringToWrite.toStdString().c_str());
-            cacheData.push_back(stringToWrite);
-            showMessageBox(QMessageBox::Information, "B-DAY | ADD", "The person was added successfully");
+            showMessageBox(QMessageBox::Critical, "B-DAY | ERROR", "Error #1: the database file can not be opened");
+            return;
         }
     }
+    fileDataBase.write(stringToWrite.toStdString().c_str());
+    cacheData.push_back(stringToWrite);
+    showMessageBox(QMessageBox::Information, "B-DAY | ADD", "The person was added successfully");
 }
 
 bool DataBase::removePerson(QString && firstNameRemove, QString && lastNameRemove) noexcept

@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 #include <QApplication>
 
-DataBase * DataBase::p_instance = nullptr;
+std::shared_ptr<DataBase> DataBase::p_instance;
 
 int main(int argc, char * argv[])
 {

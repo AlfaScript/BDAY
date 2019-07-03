@@ -25,7 +25,7 @@ void Removedialog::on_removeButton_clicked(void) noexcept
                                              "Our advice: enter only letters", "OKAY");
     else
     {
-        DataBase * db = DataBase::getInstance();
+        std::shared_ptr<DataBase> db(DataBase::getInstance());
         if(db->removePerson(std::move(firstName), std::move(lastName)))
         {
             db->updateDataBaseFile();

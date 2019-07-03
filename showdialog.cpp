@@ -7,7 +7,7 @@ Showdialog::Showdialog(QWidget * parent) : QDialog(parent), ui(new Ui::Showdialo
     ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     ui->tableView->setSortingEnabled(false);
-    DataBase * db = DataBase::getInstance();
+    std::shared_ptr<DataBase> db(DataBase::getInstance());
     db->getData(allDataFromDB);
     showAllList();
 }
@@ -19,10 +19,11 @@ Showdialog::~Showdialog()
 
 void Showdialog::showAllList(void) noexcept
 {
+    // std::unique_ptr<QStandardItemModel> model(new QStandardItemModel);
     QStandardItemModel * model = new QStandardItemModel;
     QStandardItem * item;
     model->setHorizontalHeaderLabels(horizontalHeader);
-    uint8_t i = 0;
+    uint8_t numberOfRows = 0;
     for(const auto & line : allDataFromDB)
     {
         const QStringList tempStringList = line.split(" ");
@@ -32,17 +33,28 @@ void Showdialog::showAllList(void) noexcept
         const uint8_t month = static_cast<uint8_t>(tempStringList.at(3).toUShort());
         const uint16_t year = static_cast<uint16_t>(tempStringList.at(4).toUShort());
 
+        /*std::unique_ptr<QStandardItem> firstNamePtr(new QStandardItem(firstName));
+        model->setItem(numberOfRows, 0, firstNamePtr.release());
+        std::unique_ptr<QStandardItem> lastNamePtr(new QStandardItem(lastName));
+        model->setItem(numberOfRows, 1, lastNamePtr.release());
+        std::unique_ptr<QStandardItem> dayPtr(new QStandardItem(QString::number(day)));
+        model->setItem(numberOfRows, 2, dayPtr.release());
+        std::unique_ptr<QStandardItem> monthPtr(new QStandardItem(QString::number(month)));
+        model->setItem(numberOfRows, 3, monthPtr.release());
+        std::unique_ptr<QStandardItem> yearPtr(new QStandardItem(QString::number(year)));
+        model->setItem(numberOfRows, 4, yearPtr.release());*/
+
         item = new QStandardItem(firstName);
-        model->setItem(i, 0, item);
+        model->setItem(numberOfRows, 0, item);
         item = new QStandardItem(lastName);
-        model->setItem(i, 1, item);
+        model->setItem(numberOfRows, 1, item);
         item = new QStandardItem(QString::number(day));
-        model->setItem(i, 2, item);
+        model->setItem(numberOfRows, 2, item);
         item = new QStandardItem(QString::number(month));
-        model->setItem(i, 3, item);
+        model->setItem(numberOfRows, 3, item);
         item = new QStandardItem(QString::number(year));
-        model->setItem(i, 4, item);
-        ++i;
+        model->setItem(numberOfRows, 4, item);
+        ++numberOfRows;
     }
     setTableView(*model);
 }
@@ -54,10 +66,11 @@ void Showdialog::on_radioButton_clicked(void) noexcept
 
 void Showdialog::on_radioButton_2_clicked(void) noexcept
 {
+    // std::unique_ptr<QStandardItemModel> model(new QStandardItemModel);
     QStandardItemModel * model = new QStandardItemModel;
     QStandardItem * item;
     model->setHorizontalHeaderLabels(horizontalHeader);
-    uint8_t i = 0;
+    uint8_t numberOfRows = 0;
     const uint8_t currentMonth = static_cast<uint8_t>(QDate::currentDate().month());
     for(const auto & line : allDataFromDB)
     {
@@ -71,16 +84,16 @@ void Showdialog::on_radioButton_2_clicked(void) noexcept
             const uint16_t year = static_cast<uint16_t>(tempStringList.at(4).toUShort());
 
             item = new QStandardItem(firstName);
-            model->setItem(i, 0, item);
+            model->setItem(numberOfRows, 0, item);
             item = new QStandardItem(lastName);
-            model->setItem(i, 1, item);
+            model->setItem(numberOfRows, 1, item);
             item = new QStandardItem(QString::number(day));
-            model->setItem(i, 2, item);
+            model->setItem(numberOfRows, 2, item);
             item = new QStandardItem(QString::number(month));
-            model->setItem(i, 3, item);
+            model->setItem(numberOfRows, 3, item);
             item = new QStandardItem(QString::number(year));
-            model->setItem(i, 4, item);
-            ++i;
+            model->setItem(numberOfRows, 4, item);
+            ++numberOfRows;
         }
     }
     setTableView(*model);
@@ -88,35 +101,33 @@ void Showdialog::on_radioButton_2_clicked(void) noexcept
 
 void Showdialog::on_radioButton_3_clicked(void) noexcept
 {
+    // std::unique_ptr<QStandardItemModel> model(new QStandardItemModel);
     QStandardItemModel * model = new QStandardItemModel;
     QStandardItem * item;
     model->setHorizontalHeaderLabels(horizontalHeader);
-    uint8_t i = 0;
-    const uint8_t currentDay = static_cast<uint8_t>(QDate::currentDate().day());
-    const uint8_t currentMonth = static_cast<uint8_t>(QDate::currentDate().month());
+    uint8_t numberOfRows = 0;
+    const QDate currentDate(QDate::currentDate().year(), QDate::currentDate().month(), QDate::currentDate().day());
     for(const auto & line : allDataFromDB)
     {
         const QStringList tempStringList = line.split(" ");
-        const uint8_t day = static_cast<uint8_t>(tempStringList.at(2).toUShort());
-        const uint8_t month = static_cast<uint8_t>(tempStringList.at(3).toUShort());
-        if(((month == currentMonth) && (day >= currentDay))
-                || (month > currentMonth))
+        const QDate dateOfBD(tempStringList.at(4).toInt(), tempStringList.at(3).toInt(), tempStringList.at(2).toInt());
+        if(((dateOfBD.month() == currentDate.month()) && (dateOfBD.day() >= currentDate.day()))
+                || (dateOfBD.month() > currentDate.month()))
         {
             const QString firstName = tempStringList.at(0);
             const QString lastName = tempStringList.at(1);
-            const uint16_t year = static_cast<uint16_t>(tempStringList.at(4).toUShort());
 
             item = new QStandardItem(firstName);
-            model->setItem(i, 0, item);
+            model->setItem(numberOfRows, 0, item);
             item = new QStandardItem(lastName);
-            model->setItem(i, 1, item);
-            item = new QStandardItem(QString::number(day));
-            model->setItem(i, 2, item);
-            item = new QStandardItem(QString::number(month));
-            model->setItem(i, 3, item);
-            item = new QStandardItem(QString::number(year));
-            model->setItem(i, 4, item);
-            ++i;
+            model->setItem(numberOfRows, 1, item);
+            item = new QStandardItem(QString::number(dateOfBD.day()));
+            model->setItem(numberOfRows, 2, item);
+            item = new QStandardItem(QString::number(dateOfBD.month()));
+            model->setItem(numberOfRows, 3, item);
+            item = new QStandardItem(QString::number(dateOfBD.year()));
+            model->setItem(numberOfRows, 4, item);
+            ++numberOfRows;
         }
     }
     setTableView(*model);

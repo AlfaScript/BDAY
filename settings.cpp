@@ -6,7 +6,7 @@ settings::settings(QWidget * parent) : QDialog(parent), ui(new Ui::settings)
     ui->setupUi(this);
     ui->checkBox->setChecked([]()
         {
-        #ifdef Q_OS_WIN32
+        #ifdef Q_OS_WIN
             const QFileInfo fileInfo(QCoreApplication::applicationFilePath());
             const QString pathOfLink = QStandardPaths::writableLocation(QStandardPaths::ApplicationsLocation) + QDir::separator() + "Startup" + QDir::separator() + fileInfo.completeBaseName() + ".lnk";
             return QFile::exists(pathOfLink);
@@ -26,7 +26,7 @@ void settings::on_convButton_clicked(void) noexcept
     const QString fileName = QFileDialog::getOpenFileName(this, "Import database", "", "Database file (*.dat) ;; All files (*.*)");
     if(!fileName.isEmpty())
     {
-        DataBase * db = DataBase::getInstance();
+        std::shared_ptr<DataBase> db(DataBase::getInstance());
         db->importDatabase(fileName);
     }
 }

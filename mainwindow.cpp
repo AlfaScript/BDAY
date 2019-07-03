@@ -54,14 +54,11 @@ void MainWindow::on_buttonRemove_clicked(void) noexcept
 
 void MainWindow::on_buttonShow_clicked(void) noexcept
 {
-    QFile fileDB(SETT::pathToDB);
-    if(!fileDB.exists() || fileDB.size() <= 0)
+    if(QFile fileDB(SETT::pathToDB); !fileDB.exists() || fileDB.size() <= 0)
     {
         QMessageBox::warning(this, "B-DAY | EMPTY LIST", "Your list is empty", "OKAY");
-        fileDB.close();
         return;
     }
-    fileDB.close();
     QPointer<Showdialog> newForm(new Showdialog(this));
     newForm->exec();
 }

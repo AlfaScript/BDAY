@@ -26,7 +26,7 @@ void Dialog::on_pushButton_clicked(void) noexcept
                                              "Our advice: enter only letters", "OKAY");
     else
     {
-        DataBase * db = DataBase::getInstance();
+        std::shared_ptr<DataBase> db(DataBase::getInstance());
         db->addPerson(std::move(firstName), std::move(lastName), ui->bDate->date().toString("d M yyyy"));
     }
 }

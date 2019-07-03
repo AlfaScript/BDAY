@@ -5,12 +5,14 @@
 #include <QList>
 #include <QMessageBox>
 #include <QDate>
+#include <memory>
+#include <utility>
 #include "settheader.h"
 
 class DataBase
 {
 public:
-    static DataBase * getInstance(void) noexcept;
+    static std::shared_ptr<DataBase> getInstance(void) noexcept;
     static void DestroyInstance(void) noexcept;
 
     DataBase(void);
@@ -31,7 +33,7 @@ private:
     void showTodaysBD(void) const noexcept;
     void showTommorowBD(void) const noexcept;
 
-    static DataBase * p_instance;
+    static std::shared_ptr<DataBase> p_instance;
     QList<QString> cacheData;
 };
 
